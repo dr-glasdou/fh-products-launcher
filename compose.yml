@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+
+  nats-server:
+    image: nats:latest
+    ports:
+      - 8222:8222
+
+  client-gateway:
+    image: client-gateway
+    build: ./client-gateway
+    ports:
+      - ${CLIENT_GATEWAY_PORT}:3000
+    volumes:
+      - ./client-gateway/src/:/usr/src/app/src
+    command: pnpm start:dev
+    environment:
+      PORT: 3000
+      NATS_SERVERS: nats://nats-server:4222
+
+  products-ms:
+    image: products-ms
+    build: ./products-ms
+    volumes:
+      - ./products-ms/src/:/usr/src/app/src
+    command: pnpm start:dev
+    environment:
+      PORT: 3000
+      NATS_SERVERS: nats://nats-server:4222
+      DATABASE_URL: file:./dev.db?mode=memory&cache=shared
+
+  orders-ms:
+    depends_on:
+      - orders-db
+    image: orders-ms
+    build: ./orders-ms
+    volumes:
+      - ./orders-ms/src/:/usr/src/app/src
+    command: pnpm start:dev
+    environment:
+      PORT: 3000
+      NATS_SERVERS: nats://nats-server:4222
+      DATABASE_URL: postgres://postgres:123456@orders-db:5432/orders?schema=public
+
+  orders-db:
+    container_name: orders-db
+    image: postgres:16.2
+    restart: always
+    volumes:
+      - ./orders-ms/pg:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456

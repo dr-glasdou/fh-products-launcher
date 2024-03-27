@@ -49,7 +49,25 @@ services:
     restart: always
     volumes:
       - ./orders-ms/pg:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_DB: orders
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
+
+  payments-ms:
+    image: payments-ms
+    build: ./payments-ms
+    volumes:
+      - ./payments-ms/src/:/usr/src/app/src
+    command: pnpm start:dev
+    ports:
+      - ${PAYMENTS_MS_PORT}:${PAYMENTS_MS_PORT}
+    environment:
+      PORT: ${PAYMENTS_MS_PORT}
+      NATS_SERVERS: nats://nats-server:4222
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_SUCCESS_URL: ${STRIPE_SUCCESS_URL}
+      STRIPE_CANCEL_URL: ${STRIPE_CANCEL_URL}
+      STRIPE_ENDPOINT_SECRET: ${STRIPE_ENDPOINT_SECRET}

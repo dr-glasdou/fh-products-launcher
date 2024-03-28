@@ -10,3 +10,6 @@
 [submodule "payments-ms"]
 	path = payments-ms
 	url = git@github.com:dr-glasdou/payments-ms.git
+[submodule "auth"]
+	path = auth
+	url = git@gh:dr-glasdou/auth-ms.git
